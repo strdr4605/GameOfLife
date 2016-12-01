@@ -5,14 +5,21 @@ let ctx = canvas.getContext('2d')
 canvas.width = document.body.clientWidth //document.width is obsolete
 canvas.height = document.body.clientHeight //document.height is obsolete
 
+let table = [
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0],
+  [0, 1, 1, 1, 0],
+  [0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0]
+]
+
 function setGameObj() {
   let query = window.location.hash.substr(1)
   let objQuery = parseParms(query)
   Game.cellSize = parseInt(objQuery.cellSize) || 18
   Game.cellsCount = parseInt(objQuery.cellsCount) || 500
   Game.delay = parseInt(objQuery.delay) || 500
-  Game.cellPadding = parseInt(objQuery.cellPadding) || 1
-  if (parseInt(objQuery.cellPadding) == 0) Game.cellPadding = 0
+  Game.cellPadding = parseInt(objQuery.cellPadding) || 0
   Game.sceneWidth = document.getElementById('canvas').clientWidth
   Game.sceneHeight = document.getElementById('canvas').clientHeight
   Game.cellElement = Game.cellSize + Game.cellPadding * 2
@@ -56,7 +63,6 @@ function setGameObj() {
   }
 }
 
-
 function initGrid (n, m, initial) {
   let array = []
   for(i = 0; i < n; i++){
@@ -77,22 +83,22 @@ function drawCell (color, x, y, cellElement, cellSize, cellPadding) {
   ctx.fillStyle = color
   ctx.fillRect(x * cellElement, y * cellElement, cellSize, cellSize)
   ctx.font = cellSize + 'px Arial';
-    ctx.fillStyle = 'white'
+  ctx.fillStyle = 'white'
   // ctx.fillText(Game.getNeighbours(x, y), x * cellElement, (y + 1) * cellElement )
 }
 
 function nextGeneration () {
   for(i = 0; i < Game.rows; i++){
     for(j = 0; j < Game.cols; j++){
-      if(Game.grid[i][j] === 1 && Game.getNeighbours(i, j) > Game.minimum && Game.getNeighbours(i, j) <= Game.maximum) Game.nextGeneration[i][j] = 1
-      else if(Game.grid[i][j] === 1 && (Game.getNeighbours(i, j) < Game.minimum || Game.getNeighbours(i, j) > Game.maximum)) Game.nextGeneration[i][j] = 0
-      else if(Game.grid[i][j] === 0 && Game.getNeighbours(i,j) === Game.spawn) Game.nextGeneration[i][j] = 1
+      if(Game.grid[i][j] === 1 && Game.getNeighbours(i, j) >= Game.minimum && Game.getNeighbours(i, j) <= Game.maximum) Game.nextGeneration[i][j] = 1
+      else if(Game.grid[i][j] === 0 && (Game.getNeighbours(i, j) < Game.minimum || Game.getNeighbours(i, j) > Game.maximum)) Game.nextGeneration[i][j] = 0
+      else if(Game.grid[i][j] === 0 && Game.getNeighbours(i, j) === Game.spawn) Game.nextGeneration[i][j] = 1
     }
   }
 }
 
 function drawGrid () {
-  console.log('new generation')
+  ctx.clearRect(0, 0, Game.sceneWidth, Game.sceneHeight)
   for (var i = 0; i < Game.rows ; i++) {
     for (var j = 0; j < Game.cols ; j++) {
       if (Game.grid[i][j]) {
@@ -102,8 +108,14 @@ function drawGrid () {
       }
     }
   }
+}
+
+function generation() {
   nextGeneration()
   Game.grid = Game.nextGeneration
+  Game.nextGeneration = initGrid(Game.rows, Game.cols, 0)
+  drawGrid()
+  console.log('new generation')
 }
 
 function parseParms (str) {
@@ -120,19 +132,39 @@ function parseParms (str) {
 }
 
 function draw () {
-
     setGameObj()
 
+    // seedGrid2(table)
     Game.seedGrid(Game.cellsCount)
     console.log(Game.rows * Game.cols)
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, Game.sceneWidth, Game.sceneHeight)
 
-    setInterval(function () {
-      drawGrid()
-    }, Game.delay)
+    for (var i = 0; i < Game.rows ; i++) {
+      for (var j = 0; j < Game.cols ; j++) {
+        if (Game.grid[i][j]) {
+          drawCell('black', i, j, Game.cellElement, Game.cellSize, Game.cellPadding)
+        } else {
+          drawCell('pink', i, j, Game.cellElement, Game.cellSize, Game.cellPadding)
+        }
+      }
+    }
+    drawGrid()
+    render()
 }
 
-
-// Game.seedGrid(Game.cellsCount)
+function render() {
+  generation()
+  setTimeout(function () {
+    requestAnimationFrame(render)
+  }, Game.delay)
+}
 console.log(Game)
+
+function seedGrid2(table) {
+  for(i = 0; i < table.length; i++){
+    for(j = 0; j < table[i].length; j++){
+      Game.grid[j][i] = table[i][j]
+    }
+  }
+}
