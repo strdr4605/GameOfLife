@@ -20,6 +20,7 @@ function setGameObj() {
   Game.cellsCount = parseInt(objQuery.cellsCount) || 500
   Game.delay = parseInt(objQuery.delay) || 500
   Game.cellPadding = parseInt(objQuery.cellPadding) || 0
+  Game.rle = objQuery.rle || ''
   Game.sceneWidth = document.getElementById('canvas').clientWidth
   Game.sceneHeight = document.getElementById('canvas').clientHeight
   Game.cellElement = Game.cellSize + Game.cellPadding * 2
@@ -134,8 +135,12 @@ function parseParms (str) {
 function draw () {
     setGameObj()
 
-    // seedGrid2(table)
-    Game.seedGrid(Game.cellsCount)
+    if(Game.rle) {
+      seedGrid2(stringTo2dArray(Game.rle))
+    }
+    else {
+      Game.seedGrid(Game.cellsCount)
+    }
     console.log(Game.rows * Game.cols)
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, Game.sceneWidth, Game.sceneHeight)
@@ -170,48 +175,33 @@ function seedGrid2(table) {
 }
 
 function stringTo2dArray(string) {
-  table = []
-  string = string.replace(/bo/g, "b1o")
-  string = string.replace(/ob/g, "o1b")
-  string = string.replace(/b\$/g, "b1$")
-  string = string.replace(/o\$/g, "o1$")
-  string = string.replace(/\$b/g, "$1b")
-  string = string.replace(/\$o/g, "$1o")
-  string = string.replace(/b/g, "-D ")
-  string = string.replace(/o/g, "-A ")
-  string = string.replace(/\$/g, "$ ")
+  string = string.slice(0, -1)
+  return [].concat(...string.split('$').map(el => generateRow(el)))
+}
 
-  array = string.split('$')
-  // for(i = 0; i < array.length; i++){
-  //   array[i] = array[i].split(/[bo]/)
-  // }
-
-  data ={}
-
-  for(i = 0; i < array.length; i++){
-    array[i] = array[i].split(' ')
-  }
-
-  for(i = 0; i < array.length; i++){
-    for(j = 0; j < array[i].length; j++){
-      if (array[i][j] == '') array[i].shift()
-      // parts = array[i][j].split("-")
-      // data[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1])
-      // array[i][j] = data
-    }
-  }
-
-  for(i = 0; i < array.length; i++){
-    for(j = 0; j < array[i].length; j++){
-      parts = array[i][j].split("-")
-      if (parts.length < 2) {
-          parts.push("$");
+function generateRow (str) {
+  var row = []
+  var amount = 0
+  str.split('').forEach(el => {
+    if (el >= '0' && el <= '9') {
+      amount = amount * 10 + + el
+    } else {
+      if (amount === 0) {
+        amount = 1
       }
-      data[parts[1]] = parts[0]
-      array[i][j] = data
-      data = {}
+      for (let i = 0; i < amount; i++) {
+        row.push(el === 'o' ? 1 : 0)
+      }
+      amount = 0
     }
+  })
+  var result = [row]
+  var emptyArray = []
+  for (let i = 0; i < row.length; i++) {
+    emptyArray.push(0)
   }
-  console.log(string)
-  console.log(array)
+  while (amount-- > 0) {
+    result.push([...emptyArray])
+  }
+  return result
 }
