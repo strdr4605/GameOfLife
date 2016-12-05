@@ -21,18 +21,18 @@ function setGameObj() {
   Game.spawn = 3
   Game.grid = initGrid(Game.rows, Game.cols, 0)
   Game.nextGeneration = initGrid(Game.rows, Game.cols, 0)
-  Game.seedGrid = function (cellsCount) {
+  Game.seedGrid = cellsCount => {
     for (var i = 0; i < cellsCount; i++) {
       x = getRandomNumber(0, Game.rows)
       y = getRandomNumber(0, Game.cols)
-      while( Game.grid[x][y] == 1) {
+      while(Game.grid[x][y] == 1) {
         x = getRandomNumber(0, Game.rows)
         y = getRandomNumber(0, Game.cols)
       }
       Game.grid[x][y] = 1    }
   }
 
-  Game.getNeighbours = function (x, y) {
+  Game.getNeighbours = (x, y) => {
     let neighbours = (Game.grid[x][y] === 1) ? -1 : 0
     for(h = -1; h <= 1; h++){
       for(w = -1; w <= 1; w++){
@@ -74,7 +74,10 @@ function drawCell (color, x, y, cellElement, cellSize, cellPadding) {
 function nextGeneration () {
   for(i = 0; i < Game.rows; i++)
     for(j = 0; j < Game.cols; j++)
-      if( (Game.grid[i][j] === 1 && Game.getNeighbours(i, j) >= Game.minimum && Game.getNeighbours(i, j) <= Game.maximum) || (Game.grid[i][j] === 0 && Game.getNeighbours(i, j) === Game.spawn) ) Game.nextGeneration[i][j] = 1
+      if(
+        (Game.grid[i][j] === 1 && Game.getNeighbours(i, j) >= Game.minimum && Game.getNeighbours(i, j) <= Game.maximum)
+        || (Game.grid[i][j] === 0 && Game.getNeighbours(i, j) === Game.spawn)
+      ) Game.nextGeneration[i][j] = 1
 }
 
 function drawGrid () {
