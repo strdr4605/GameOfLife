@@ -8,8 +8,10 @@ var Game = function () {
   function Game(obj) {
     _classCallCheck(this, Game);
 
-    this.ctx = document.querySelector(obj['el']).getContext('2d'), this.cellSize = obj['cellSize'] || 18, this.cellsCount = obj['cellCount'] || 500, this.delay = obj['delay'] || 500, this.cellPadding = obj['cellPadding'] || 0, this.rle = obj['rle'] || '', this.sceneWidth = document.querySelector(obj['el']).clientWidth, this.sceneHeight = document.querySelector(obj['el']).clientHeight, this.minimum = obj['minimum'] || 2, this.maximum = obj['maximum'] || 3, this.spawn = obj['spawn'] || 3, this.cellElement = this.cellSize + this.cellPadding * 2, this.rows = parseInt(this.sceneWidth / this.cellElement), this.cols = parseInt(this.sceneHeight / this.cellElement);
-    this.grid = this.initGrid();
+    document.querySelector(obj['el']).width = innerWidth;
+    document.querySelector(obj['el']).height = innerHeight;
+    this.ctx = document.querySelector(obj['el']).getContext('2d'), this.cellSize = obj['cellSize'] || 18, this.delay = obj['delay'] || 500, this.cellPadding = obj['cellPadding'] || 0, this.rle = obj['rle'] || '', this.sceneWidth = document.querySelector(obj['el']).clientWidth, this.sceneHeight = document.querySelector(obj['el']).clientHeight, this.minimum = obj['minimum'] || 2, this.maximum = obj['maximum'] || 3, this.spawn = obj['spawn'] || 3, this.cellElement = this.cellSize + this.cellPadding * 2, this.rows = parseInt(this.sceneWidth / this.cellElement), this.cols = parseInt(this.sceneHeight / this.cellElement);
+    this.cellsCount = parseInt(this.rows * this.cols * 0.7), this.grid = this.initGrid();
     this.nextGeneration = this.grid;
   }
 
@@ -78,7 +80,6 @@ var Game = function () {
         }
       }this.grid = this.nextGeneration;
       this.nextGeneration = this.initGrid();
-      this.drawGrid();
       console.log('generation');
     }
   }, {
@@ -96,27 +97,30 @@ var Game = function () {
       this.seedGrid();
       this.drawGrid();
     }
-
-    // nextTick () {
-    //   this.generation()
-    //   setTimeout(() => {
-    //     requestAnimationFrame(this.nextTick)
-    //   }, this.delay)
-    // }
-
+  }, {
+    key: 'nextTick',
+    value: function nextTick() {
+      this.generation();
+      this.drawGrid();
+    }
   }]);
 
   return Game;
 }();
 
+var animate = function animate(cb) {
+  cb();
+  requestAnimationFrame(animate.bind(null, cb));
+};
+
 var game = new Game({
   el: '#canvas',
-  cellSize: 10,
-  delay: 100,
-  cellsCount: 100
+  cellSize: 6,
+  delay: 200,
+  cellPadding: 0
 });
 
 game.start();
-setInterval(function () {
-  game.generation();
-}, game.delay);
+animate(function () {
+  game.nextTick();
+});

@@ -1,8 +1,9 @@
 class Game {
   constructor(obj) {
+    document.querySelector(obj['el']).width = innerWidth
+    document.querySelector(obj['el']).height = innerHeight
     this.ctx = document.querySelector(obj['el']).getContext('2d'),
     this.cellSize = obj['cellSize'] || 18,
-    this.cellsCount = obj['cellCount'] || 500,
     this.delay = obj['delay'] || 500,
     this.cellPadding = obj['cellPadding'] || 0,
     this.rle = obj['rle'] || '',
@@ -14,6 +15,7 @@ class Game {
     this.cellElement = this.cellSize + this.cellPadding * 2,
     this.rows = parseInt(this.sceneWidth / this.cellElement),
     this.cols = parseInt(this.sceneHeight / this.cellElement)
+    this.cellsCount = parseInt(this.rows * this.cols * 0.7),
     this.grid = this.initGrid()
     this.nextGeneration = this.grid
   }
@@ -77,7 +79,6 @@ class Game {
         ) this.nextGeneration[i][j] = 1
     this.grid = this.nextGeneration
     this.nextGeneration = this.initGrid()
-    this.drawGrid()
     console.log('generation')
   }
 
@@ -92,22 +93,23 @@ class Game {
     this.drawGrid()
   }
 
-  // nextTick () {
-  //   this.generation()
-  //   setTimeout(() => {
-  //     requestAnimationFrame(this.nextTick)
-  //   }, this.delay)
-  // }
+  nextTick () {
+    this.generation()
+    this.drawGrid()
+  }
+}
+
+var animate = function (cb) {
+  cb()
+  requestAnimationFrame(animate.bind(null, cb))
 }
 
 var game = new Game({
   el: '#canvas',
-  cellSize: 10,
-  delay: 100,
-  cellsCount: 100
+  cellSize: 6,
+  delay: 200,
+  cellPadding: 0
 })
 
 game.start()
-setInterval(() => {
-  game.generation()
-}, game.delay)
+animate(game.nextTick.bind(game))
